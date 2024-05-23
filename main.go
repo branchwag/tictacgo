@@ -82,6 +82,7 @@ func checkWinner(board [3][3]string, player string) bool {
 func main(){
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/move", moveHandler)
+	http.Handle("static/", http.StripPrefix("/static", http.FileServer(http.Dir("."))))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
