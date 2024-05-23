@@ -4,6 +4,34 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tic Tac Go</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/htmx.org@1.4.0"></script>
   </head>
-  <body></body>
+  <body>
+    <h1>Tic Tac Go</h1>
+    <table>
+      {{range $i, $row := .Board}}
+      <tr>
+        {{range $j, $cell := $row}}
+        <td>
+          {{if eq $cell ""}}
+          <a
+            href="/move?row{{$i}}&col={{$j}}"
+            hx-get="/move?row={{$i}}&col={{$j}}"
+            hx-target="this"
+            hx-swap="outerHTML"
+          >
+            {{$cell}}
+          </a>
+          {{else}} {{$cell}} {{end}}
+        </td>
+        {{end}}
+      </tr>
+      {{end}}
+    </table>
+    <h2>
+      {{if .Winner}}Winner: {{.Winner}}{{else}}Current Player:
+      {{.Player}}{{end}}
+    </h2>
+  </body>
 </html>
