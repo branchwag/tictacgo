@@ -2,6 +2,7 @@ package main
 
 import (
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -35,20 +36,32 @@ func moveHandler(w http.ResponseWriter, r *http.Request){
 
 	if game.Board[row][col] == "" {
 		game.Board[row][col] = game.Player
-		if game.Player == "X" {
-			game.Player = "O"
-		} else {
-			game.Player="X"
-		}
+		computerMove()
 	}
 	w.Write([]byte(game.Board[row][col]))
 }
 
+func computerMove() {
+	for i, row := range game.Board {
+		for j, cell := range row {
+			if cell == "" {
+				game.Board[i][j] = "O"
+				return
+			}
+		}
+	}
+}
+
 
 func main(){
+	port := ":8080"
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/move", moveHandler)
 	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("static"))))
-	http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(port, nil)
+	if err != nil {
+		log.Fatalf("Error starting server: %v", err)
+	}
+	log.Printf("Serving it up on http://localhost%s", port)
 }
 
