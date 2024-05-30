@@ -7,61 +7,79 @@ import (
 	"strconv"
 )
 
-
 type Game struct {
-	Board [][]string
+	Board  [][]string
 	Player string
-	Winner string
 }
 
 var game = Game{
 	Board: [][]string{
-		{"","",""},
-		{"","",""},
-		{"","",""},
+		{"", "", ""},
+		{"", "", ""},
+		{"", "", ""},
 	},
 	Player: "X",
 }
 
-func indexHandler(w http.ResponseWriter, r *http.Request){
-	t, _ := template.ParseFiles("index.html")
-	t.Execute(w, game)
+var templates *template.Template
+
+func init() {
+	templates = template.Must(template.ParseFiles("index.html", "board.html"))
 }
 
-func moveHandler(w http.ResponseWriter, r *http.Request){
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Serving index page")
+	err := templates.ExecuteTemplate(w, "index.html", game)
+	if err != nil {
+		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
+	}
+}
+
+func moveHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Received move request")
 	rowStr := r.URL.Query().Get("row")
 	colStr := r.URL.Query().Get("col")
-	row, _ := strconv.Atoi(rowStr)
-	col, _ := strconv.Atoi(colStr)
+	log.Printf("Move request parameters: row=%s, col=%s", rowStr, colStr)
+
+	row, errRow := strconv.Atoi(rowStr)
+	col, errCol := strconv.Atoi(colStr)
+
+	if errRow != nil || errCol != nil || row < 0 || row >= len(game.Board) || col < 0 || col >= len(game.Board[0]) {
+		http.Error(w, "Invalid row or column", http.StatusBadRequest)
+		return
+	}
 
 	if game.Board[row][col] == "" {
 		game.Board[row][col] = game.Player
-		computerMove()
+		togglePlayer() // Toggle player after valid move
+	} else {
+		http.Error(w, "Invalid move, cell already occupied", http.StatusBadRequest)
+		return
 	}
-	w.Write([]byte(game.Board[row][col]))
+
+	err := templates.ExecuteTemplate(w, "board.html", game)
+	if err != nil {
+		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
+	}
+	log.Println("Move processed and board updated")
 }
 
-func computerMove() {
-	for i, row := range game.Board {
-		for j, cell := range row {
-			if cell == "" {
-				game.Board[i][j] = "O"
-				return
-			}
-		}
+func togglePlayer() {
+	if game.Player == "X" {
+		game.Player = "O"
+	} else {
+		game.Player = "X"
 	}
 }
 
-
-func main(){
+func main() {
 	port := ":8080"
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/move", moveHandler)
 	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("static"))))
+	log.Printf("Serving it up on http://localhost%s", port)
 	err := http.ListenAndServe(port, nil)
 	if err != nil {
 		log.Fatalf("Error starting server: %v", err)
 	}
-	log.Printf("Serving it up on http://localhost%s", port)
 }
-

@@ -1,0 +1,15 @@
+<table>
+  {{range $i, $row := .Board}}
+  <tr>
+    {{range $j, $cell := $row}}
+    <td
+      hx-get="/move?row={{$i}}&col={{$j}}"
+      hx-target="#game-board"
+      hx-swap="outerHTML"
+    >
+      {{$cell}}
+    </td>
+    {{end}}
+  </tr>
+  {{end}}
+</table>
