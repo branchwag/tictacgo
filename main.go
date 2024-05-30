@@ -50,8 +50,9 @@ func moveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if game.Board[row][col] == "" {
-		game.Board[row][col] = game.Player
-		togglePlayer() // Toggle player after valid move
+		game.Board[row][col] = "X"
+		togglePlayer()
+		computerMove() 
 	} else {
 		http.Error(w, "Invalid move, cell already occupied", http.StatusBadRequest)
 		return
@@ -69,6 +70,18 @@ func togglePlayer() {
 		game.Player = "O"
 	} else {
 		game.Player = "X"
+	}
+}
+
+func computerMove() {
+	for i, row := range game.Board{
+		for j, cell := range row {
+			if cell == "" {
+				game.Board[i][j] = "O"
+				togglePlayer()
+				return
+			}
+		}
 	}
 }
 
