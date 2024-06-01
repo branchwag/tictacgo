@@ -85,10 +85,29 @@ func computerMove() {
 	}
 }
 
+func resetHandler(w http.ResponseWriter, r *http.Request){
+	log.Println("Resetting game board")
+	game = Game{
+		Board: [][]string{
+			{"", "", ""},
+			{"", "", ""},
+			{"", "", ""},
+		},
+		Player: "X",
+	}
+
+	err := templates.ExecuteTemplate(w, "board.html", game)
+	if err != nil {
+		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
+	}
+	log.Println("Game board reset")
+}
+
 func main() {
 	port := ":8080"
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/move", moveHandler)
+	http.HandleFunc("/reset", resetHandler)
 	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("static"))))
 	log.Printf("Serving it up on http://localhost%s", port)
 	err := http.ListenAndServe(port, nil)

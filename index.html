@@ -16,10 +16,34 @@
         text-align: center;
         font-size: 24px;
       }
+      #resetbutton {
+        margin: 20px;
+      }
     </style>
   </head>
   <body>
     <h1>Tic Tac Toe</h1>
-    <div id="game-board">{{template "board.html" .}}</div>
+    <div id="new-board">
+      <div id="game-board">{{template "board.html" .}}</div>
+    </div>
+    <button id="resetbutton" onclick="resetGame()">Reset the Game</button>
+    <script>
+      function resetGame() {
+        function updateBoard(html) {
+          // console.log("Updating board with HTML:", html);
+          const newBoard = document.getElementById("new-board");
+          if (newBoard) {
+            newBoard.innerHTML = html;
+          } else {
+            console.error("Element new-board not found");
+          }
+        }
+
+        fetch(`/reset`)
+          .then((response) => response.text())
+          .then((html) => updateBoard(html))
+          .catch((error) => console.error("Error:", error));
+      }
+    </script>
   </body>
 </html>
